@@ -14,6 +14,7 @@ type Context struct {
 	StatusCode int
 	Path       string
 	Method     string
+	Params     map[string]string //路径上的参数
 }
 
 func newContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -23,6 +24,10 @@ func newContext(w http.ResponseWriter, r *http.Request) *Context {
 		Path:    r.URL.Path,
 		Method:  r.Method,
 	}
+}
+
+func (c *Context) Param(key string) string {
+	return c.Params[key]
 }
 
 func (ctx *Context) SetHeader(key, value string) {

@@ -2,7 +2,6 @@ package Rigee
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -20,7 +19,6 @@ func New() *Engine {
 }
 
 func (engine *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
-	log.Println(method + "-" + pattern)
 	engine.router.addRoute(method, pattern, handler)
 }
 

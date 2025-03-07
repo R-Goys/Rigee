@@ -6,10 +6,13 @@ import (
 
 func main() {
 	r := Rigee.New()
-	r.GET("/hello", func(c *Rigee.Context) {
+	r.GET("/:hello", func(c *Rigee.Context) {
+
 		c.JSON(200, Rigee.H{
-			"hello":  "world",
-			"status": 200,
+			"hello":     "world",
+			"status":    200,
+			"mymessage": c.PostForm("msg"),
+			"param":     c.Params,
 		})
 	})
 	r.Run(":8080")
