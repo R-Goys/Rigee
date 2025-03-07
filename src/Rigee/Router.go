@@ -1,5 +1,7 @@
 package Rigee
 
+type HandlerFunc func(c *Context)
+
 type router struct {
 	handlers map[string]HandlerFunc
 }
