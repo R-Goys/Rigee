@@ -29,6 +29,12 @@ func New() *Engine {
 	return engine
 }
 
+func Default() *Engine {
+	engine := New()
+	engine.Use(Recovery())
+	return engine
+}
+
 func (engine *Engine) Run(addr string) (err error) {
 	fmt.Println("Starting Rigee Server In " + addr)
 	return http.ListenAndServe(addr, engine)

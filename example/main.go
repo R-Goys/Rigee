@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	r := Rigee.New()
+	r := Rigee.Default()
 	user := r.Group("/:uid")
 	user.Use(func(c *Rigee.Context) {
 		fmt.Println("中间件执行")
@@ -14,6 +14,8 @@ func main() {
 		fmt.Println("中间件的返回")
 	})
 	user.POST("/page", func(c *Rigee.Context) {
+		var x []int
+		x[3] = 1
 		c.JSON(200, Rigee.H{
 			"hello":     "ClassOne",
 			"status":    200,
