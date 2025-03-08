@@ -3,7 +3,6 @@ package Rigee
 import (
 	"fmt"
 	"github.com/Rinai-R/Rigee/src/Rigee/trie"
-	"log"
 	"strings"
 	"time"
 )
@@ -13,6 +12,13 @@ type HandlerFunc func(c *Context)
 type router struct {
 	roots    map[string]*trie.Node
 	handlers map[string]HandlerFunc
+}
+
+type RouterGroup struct {
+	prefix      string
+	middlewares []HandlerFunc
+	parent      *RouterGroup
+	engine      *Engine
 }
 
 func newRouter() *router {
@@ -37,7 +43,6 @@ func parseParts(pattern string) []string {
 }
 
 func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
-	log.Println("addRoute:", method, pattern)
 	parts := parseParts(pattern)
 	key := method + "-" + pattern
 	if _, ok := r.handlers[key]; !ok {
