@@ -15,6 +15,8 @@ type Context struct {
 	Path       string
 	Method     string
 	Params     map[string]string //路径上的参数
+	index      int
+	handlers   []HandlerFunc
 }
 
 func newContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -23,7 +25,23 @@ func newContext(w http.ResponseWriter, r *http.Request) *Context {
 		Request: r,
 		Path:    r.URL.Path,
 		Method:  r.Method,
+		index:   -1,
 	}
+}
+
+func (c *Context) Next() {
+	c.index++
+	if c.index < len(c.handlers) {
+		for ; c.index < len(c.handlers); c.index++ {
+			c.handlers[c.index](c)
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, H{
+			"status": 40001,
+			"error":  "Next HandlerFunc Not Found!",
+		})
+	}
+	return
 }
 
 func (c *Context) Param(key string) string {

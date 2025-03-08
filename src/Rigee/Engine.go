@@ -21,6 +21,7 @@ func New() *Engine {
 	engine := &Engine{router: newRouter()}
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	engine.groups = []*RouterGroup{engine.RouterGroup}
+	engine.router.engine = engine
 	return engine
 }
 
@@ -29,10 +30,13 @@ func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	newgroup := &RouterGroup{
 		engine: engine,
 		prefix: group.prefix + prefix,
-		parent: group,
 	}
 	engine.groups = append(engine.groups, newgroup)
 	return newgroup
+}
+
+func (group *RouterGroup) Use(middlewares ...HandlerFunc) {
+	group.middlewares = append(group.middlewares, middlewares...)
 }
 
 func (group *RouterGroup) addRoute(method string, cmp string, handler HandlerFunc) {
@@ -47,7 +51,7 @@ func (group *RouterGroup) GET(pattern string, handler HandlerFunc) {
 func (group *RouterGroup) POST(pattern string, handler HandlerFunc) {
 	group.addRoute("POST", pattern, handler)
 }
-func (group *RouterGroup) Run(addr string) (err error) {
+func (engine *Engine) Run(addr string) (err error) {
 	fmt.Println("Starting Rigee Server In " + addr)
-	return http.ListenAndServe(addr, group.engine)
+	return http.ListenAndServe(addr, engine)
 }

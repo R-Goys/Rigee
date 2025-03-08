@@ -12,12 +12,12 @@ type HandlerFunc func(c *Context)
 type router struct {
 	roots    map[string]*trie.Node
 	handlers map[string]HandlerFunc
+	engine   *Engine
 }
 
 type RouterGroup struct {
 	prefix      string
 	middlewares []HandlerFunc
-	parent      *RouterGroup
 	engine      *Engine
 }
 
@@ -42,6 +42,7 @@ func parseParts(pattern string) []string {
 	return parts
 }
 
+// 为当前router添加路由
 func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 	parts := parseParts(pattern)
 	key := method + "-" + pattern
@@ -53,6 +54,7 @@ func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 	r.handlers[key] = handler
 }
 
+// 检查是否存在相应的路由
 func (r *router) getRoute(method string, path string) (*trie.Node, map[string]string) {
 	SearchParts := parseParts(path)
 	params := map[string]string{}
@@ -79,20 +81,28 @@ func (r *router) getRoute(method string, path string) (*trie.Node, map[string]st
 	return nil, nil
 }
 
+// 发送http请求执行的方法
 func (r *router) handle(c *Context) {
 	fmt.Println(time.Now(), c.Method, c.Path)
 	n, params := r.getRoute(c.Method, c.Path)
 	if n != nil {
 		key := c.Method + "-" + n.Pattern
-		c.Params = params
-		if handler, ok := r.handlers[key]; ok {
-			handler(c)
-			return
+		var middlewares []HandlerFunc
+		for _, group := range r.engine.groups {
+			if strings.HasPrefix(n.Pattern, group.prefix) {
+				middlewares = append(middlewares, group.middlewares...)
+			}
 		}
+		c.handlers = append(c.handlers, middlewares...)
+		c.Params = params
+		c.handlers = append(c.handlers, r.handlers[key])
+	} else {
+		c.handlers = append(c.handlers, func(c *Context) {
+			c.JSON(404, H{
+				"message": "Not found",
+				"status":  404,
+			})
+		})
 	}
-	c.JSON(404, H{
-		"message": "Not found",
-		"status":  404,
-	})
-	return
+	c.Next()
 }
