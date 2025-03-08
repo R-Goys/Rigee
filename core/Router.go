@@ -2,23 +2,18 @@ package Rigee
 
 import (
 	"fmt"
-	"github.com/Rinai-R/Rigee/src/Rigee/trie"
+	"github.com/R-Goys/Rigee/pkg/trie"
 	"strings"
 	"time"
 )
 
 type HandlerFunc func(c *Context)
 
+// 完成路由相关的各种操作
 type router struct {
 	roots    map[string]*trie.Node
 	handlers map[string]HandlerFunc
 	engine   *Engine
-}
-
-type RouterGroup struct {
-	prefix      string
-	middlewares []HandlerFunc
-	engine      *Engine
 }
 
 func newRouter() *router {
@@ -87,6 +82,7 @@ func (r *router) handle(c *Context) {
 	n, params := r.getRoute(c.Method, c.Path)
 	if n != nil {
 		key := c.Method + "-" + n.Pattern
+		//为了匹配动态前缀树，选择在这里添加前缀
 		var middlewares []HandlerFunc
 		for _, group := range r.engine.groups {
 			if strings.HasPrefix(n.Pattern, group.prefix) {
@@ -94,6 +90,8 @@ func (r *router) handle(c *Context) {
 			}
 		}
 		c.handlers = append(c.handlers, middlewares...)
+		//中间件追加完成
+		//最后再append我们的路由
 		c.Params = params
 		c.handlers = append(c.handlers, r.handlers[key])
 	} else {
